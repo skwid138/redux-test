@@ -2,41 +2,56 @@ import React, { Component } from 'react';
 import CounterControl from '../../components/CounterControl/CounterControl';
 import CounterOutput from '../../components/CounterOutput/CounterOutput';
 
+import * as actionTypes from '../../store/actions';
+import { connect } from 'react-redux';
+
 class Counter extends Component {
-    state = {
-        counter: 0,
-    }
-
-    counterChangedHandler = (action, value) => {
-        switch (action) {
-            case 'inc':
-                this.setState(prevState => ({ counter: prevState.counter + 1 }));
-                break;
-            case 'dec':
-                this.setState(prevState => ({ counter: prevState.counter - 1 }));
-                break;
-            case 'add':
-                this.setState(prevState => ({ counter: prevState.counter + value }));
-                break;
-            case 'sub':
-                this.setState(prevState  => ({ counter: prevState.counter - value }));
-				break;
-			default:
-				break;
-        }
-    }
-
-    render () {
+	render () {
         return (
             <div>
-                <CounterOutput value={ this.state.counter } />
-                <CounterControl label="Increment" clicked={ () => this.counterChangedHandler( 'inc' ) } />
-                <CounterControl label="Decrement" clicked={ () => this.counterChangedHandler( 'dec' ) }  />
-                <CounterControl label="Add 5" clicked={ () => this.counterChangedHandler( 'add', 5 ) }  />
-                <CounterControl label="Subtract 5" clicked={ () => this.counterChangedHandler( 'sub', 5 ) }  />
+                <CounterOutput value={ this.props.ctr } />
+                <CounterControl label="Increment" clicked={ this.props.onIncrementCounter } />
+                <CounterControl label="Decrement" clicked={ this.props.onDecrementCounter }  />
+                <CounterControl label="Add 5" clicked={ this.props.onAddCounter }  />
+                <CounterControl label="Subtract 5" clicked={ this.props.onSubtractCounter }  />
+				<hr/>
+				<button onClick={ this.props.onStoreResult }>Store Result</button>
+				<ul>
+					{ this.props.storedResults.map(result => (
+						<li key={ result.id } onClick={ () => this.props.onDeleteResults(result.id) }>{ result.value }</li>
+					)) }
+				</ul>
             </div>
         );
     }
 }
 
-export default Counter;
+
+/* Because state can be massive and there could be many actions to be efficient connect will only take a subset that we need it to */
+
+/* Map redux state to react props */
+//* The state argument is the state from redux */
+const mapStateToProps = state => {
+	return {
+		ctr: state.counter,
+		storedResults: state.results,
+	}
+}
+
+/* This adds actions to props - which are essentially the functions that manipulate the state */
+const mapDispatchToProps = dispatch => {
+	return {
+		onIncrementCounter: () => dispatch({type: actionTypes.INCREMENT}),
+		onDecrementCounter: () => dispatch({type: actionTypes.DECREMENT}),
+		onAddCounter: () => dispatch({type: actionTypes.ADD, payload: {value: 5}}),
+		onSubtractCounter: () => dispatch({type: actionTypes.SUBTRACT, payload: {value: 5}}),
+		onStoreResult: () => dispatch({type: actionTypes.STORE_RESULT}),
+
+		//* wrapping the action in an anonymous function allows arguments to be passed in
+		onDeleteResults: id => dispatch({type: actionTypes.DELETE_RESULT, payload: {id: id}}),
+	}
+}
+
+/* connect is a function that returns a higher order function which accepts the component as an argument */
+/* if state is not needed pass null, if actions are not needed the argument is optional */
+export default connect(mapStateToProps, mapDispatchToProps)(Counter);
