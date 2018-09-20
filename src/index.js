@@ -6,10 +6,17 @@ import registerServiceWorker from './registerServiceWorker';
 
 /* Provider takes a prop called store, it wraps the react app and lets us access the store */
 import { Provider } from 'react-redux';
-import { createStore } from 'redux';
-import reducer from './store/reducer';
+import { createStore, combineReducers } from 'redux';
+import counterReducer from './store/reducers/counter';
+import resultReducer from './store/reducers/result';
 
-const store = createStore(reducer);
+/* Combine multiple reducers before passing them into createStore() */
+const rootReducer = combineReducers({
+	ctr: counterReducer,
+	res: resultReducer,
+});
+
+const store = createStore(rootReducer);
 
 ReactDOM.render(
 	<Provider store={ store }>
